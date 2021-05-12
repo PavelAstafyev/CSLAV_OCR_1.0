@@ -1,4 +1,3 @@
-#крч есть +- документация, вот
 #всякие импорты
 import os, collections, numpy, cv2, fitz
 from tensorflow import keras
