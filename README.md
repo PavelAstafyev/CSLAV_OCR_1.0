@@ -1,6 +1,6 @@
 # CSLAV_OCR_2.0
 
-Оптическое распознавание печатных старославянских рукописей XXVII в.
+Оптическое распознавание печатных старославянских текстов XXVII в.
 Сейчас код заточен на единственный документ (<a href = "https://drive.google.com/file/d/1Kopdod_E4U6r7Ft9FukMAtBI655PzUQc/view?usp=sharing">Евангелие 1606 г.</a>), однако планируется расширение за счет других документов.
 
 Для работы программы необходимы следующие файлы:
@@ -10,9 +10,9 @@
 - собственно файл pdf для распознавания
 
 Требуется установка библиотек:
-- PyMuPDF для работы с pdf-файлами
-- opencv-python для работы с изображениями
-- numpy для работы с многомерными массивами
-- tensorflow для работы с нейросетями
+- **PyMuPDF** для работы с pdf-файлами
+- **opencv-python** для работы с изображениями
+- **numpy** для работы с многомерными массивами
+- **tensorflow** для работы с нейросетями
 
-В файле <a href="https://github.com/PavelAstafyev/CSLAV_OCR_2.0/blob/main/model.py">model.py</a> содержится код, который мы использовали для создания, обучения и оценки нейросети. Для его запуска требуется установка библиотеки matplotlib, которую мы использовали для визуализации процесса обучения (файл <a href="https://github.com/PavelAstafyev/CSLAV_OCR_2.0/blob/main/learning.png">learning.png</a>). <a href = "https://drive.google.com/drive/folders/1P8BmnVK_i-LL06Xi3sTd1LJ4WUQ1hb8h?usp=sharing">Наш датасет</a>. Модель можно переобучать на других датасетах.
+В файле <a href="https://github.com/PavelAstafyev/CSLAV_OCR_2.0/blob/main/model.py">model.py</a> содержится код, который мы использовали для создания, обучения и оценки нейросети. Для его запуска требуется установка библиотеки **matplotlib**, которую мы использовали для визуализации процесса обучения (файл <a href="https://github.com/PavelAstafyev/CSLAV_OCR_2.0/blob/main/learning.png">learning.png</a>). <a href = "https://drive.google.com/drive/folders/1P8BmnVK_i-LL06Xi3sTd1LJ4WUQ1hb8h?usp=sharing">Наш датасет</a>. Модель можно переобучать на других датасетах.
