@@ -231,10 +231,9 @@ def main(model_name, predictions_file):
     predictions_list = decode_predictions(predictions_file)
     os.chdir(result_dir)
     save_interim_results = int(input('Сохранить промежуточные результаты? 1 - да, 0 - нет  '))
-    result_file = 'text.txt'
-    with open(result_file, 'w', encoding='utf-8') as f:
+    with open('text.txt', 'w', encoding='utf-8') as f:
         f.write(get_text(fname, model, predictions_list, save_interim_results=save_interim_results))
-    print('Распознанный текст в файле '+result_file)
+    print('Распознанный текст в файле text.txt')
 
     
 main('machine.h5', 'predictions.txt')
