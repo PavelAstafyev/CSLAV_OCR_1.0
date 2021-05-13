@@ -1,19 +1,14 @@
-#всякие импорты
-import os, collections, numpy, cv2, fitz
+import os
+import collections
+import numpy
+import cv2
+import fitz
 from tensorflow import keras
 
-class Symbol:
-    #просто для удобства
-    #у объекта есть свойства
-    #.text - собственно символ, предсказанный нейросеткой
-    #.coordinates - координаты верхней левой и нижней правой граничных точек контура на исходном изображении
 
+class Symbol:
+    
     def __init__(self, matrix, rectangle, model, predictions_list):
-        #для создания объекта требуется
-        # матрица (считанное изображение символа)
-        # ограничивающий прямоугольник (список из 2 координат верхней левой точки, ширины и высоты)
-        # нейросеть
-        # список предсказаний (получается в функции decode_predictions)
         cv2.imwrite('symbol.png', matrix)
         image = keras.preprocessing.image.load_img('symbol.png', target_size=(56, 56, 3))
         input_arr = keras.preprocessing.image.img_to_array(image)
@@ -29,8 +24,7 @@ class Symbol:
         self.coordinates = rectangle[0], rectangle[1], rectangle[0] + rectangle[2], rectangle[1] + rectangle[3]
 
 
-def load_page_from_pdf(pdffile, page_number, zoom=4.166): #загрузка страницы из пдф в файл пнг
-    #pdffile - имя файла, page_number - номер страницы по файлу в читалке - 1
+def load_page_from_pdf(pdffile, page_number, zoom=4.166):
     doc = fitz.open(pdffile)
     page = doc.load_page(page_number)
     mat = fitz.Matrix(zoom, zoom)
@@ -41,7 +35,7 @@ def load_page_from_pdf(pdffile, page_number, zoom=4.166): #загрузка ст
     return 'page.png'
 
 
-def decode_predictions(prediction_file): #из файла получает предсказания сети для каждого типа символа, нужно для формирования текста
+def decode_predictions(prediction_file):
     with open(prediction_file, 'r', encoding='utf-8') as f_predictions:
         predictions = f_predictions.read()
     predictions_list = predictions.split('\n\n')
@@ -49,10 +43,10 @@ def decode_predictions(prediction_file): #из файла получает пр�
         predictions_list[i] = predictions_list[i].split('\t')
     return predictions_list
 
-def get_text(filename, model, predictions_list, save_interim_results=False): #пока сборная функция для получения текста
-    #filename - имя картинки, predictions_list - соответствия предсказаний и символов, model - модель
 
-    def kinovar2black(img): #киноварь в черный (на вход и выход - матрица); неплохо бы оптимизировать
+def get_text(filename, model, predictions_list, save_interim_results=False):
+
+    def kinovar2black(img):
         h = img.shape[0]
         w = img.shape[1]
         img = img.reshape(h * w, 3)
@@ -68,7 +62,7 @@ def get_text(filename, model, predictions_list, save_interim_results=False): #п
         img = img.reshape(h, w, 3)
         return img
 
-    def prepare_img(filename, save_interim_results): #предобработка картинки, на вход название файла, на выход матрица
+    def prepare_img(filename, save_interim_results):
         img = cv2.imread(filename)
         se = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
         img_ex = cv2.morphologyEx(img, cv2.MORPH_DILATE, se)
@@ -84,7 +78,7 @@ def get_text(filename, model, predictions_list, save_interim_results=False): #п
             print('Изображение после предобработки в файле img_binary.png')
         return img_erode
 
-    def get_boxes(img_prepared, min_h, save_interim_results=False, max_h=700, max_w=400): #поиск контуров на картинке, в аргументах обработанная картинка и допустимые размеры контура
+    def get_boxes(img_prepared, min_h, save_interim_results=False, max_h=700, max_w=400):
         boxes = []
         contours, hierarchy = cv2.findContours(img_prepared, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
         hierarchy_counter = collections.Counter()
@@ -95,12 +89,9 @@ def get_text(filename, model, predictions_list, save_interim_results=False): #п
             (x, y, w, h) = cv2.boundingRect(contour)
             if hierarchy[0][idx][3] == h_mark and min_h < h < max_h and w < max_w:
                 boxes.append([x, y, w, h])
-        #возвращает список граничных прямоугольников (2 координаты верхней левой точки, ширина и высота)
         return boxes
 
-    def get_symbols(img_prepared, model, predictions_list, min_h, max_h=700, max_w=400, save_interim_results=False): #получение списка символов
-        #аргументы примерно как в функции get_text, нужна обработанная картинка
-        #создаются объекты класса Symbol, т е про них известны координаты контуров и предсказанный символ
+    def get_symbols(img_prepared, model, predictions_list, min_h, max_h=700, max_w=400, save_interim_results=False):
         img = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
         if save_interim_results:
             img_contours = cv2.imread(filename)
@@ -130,8 +121,7 @@ def get_text(filename, model, predictions_list, save_interim_results=False): #п
             print('Границы контуров в файле img_contours.png')
         return symbols
 
-    def get_edges(boxes, threshn): #оч тупая функция для поиска строк по списку ограничивающих прямоугольников
-        #аргументы - boxes (можно получить функцией get_boxes) и порог (на сколько максимум могут отличаться у-координаты контуров в одной строке)
+    def get_edges(boxes, threshn):
         boxes.sort(key=lambda box: box[1])
         new_list = []
         for el in boxes:
@@ -150,21 +140,15 @@ def get_text(filename, model, predictions_list, save_interim_results=False): #п
                         new_list[idx1][0] = 0
         img_for_rows = cv2.imread(filename)
         edges = []
-        #edges это список y-координат, которые делят изображение на полосы, +- соответствующие строкам
         for row in rows:
             x = img_for_rows.shape[0]
             for box in row:
                 if box[1] + box[3] < x:
                     x = box[1] + box[3]
             edges.append(x)
-        #for i in range(1, len(edges)):
-            #cv2.rectangle(img_for_rows, (100, edges[i - 1]), (img_for_rows.shape[1] - 100, edges[i]), (30, 30, 30), 2)
-        #cv2.imwrite('img_edges.png', img_for_rows)
         return edges
 
-    def symbols_to_rows(symbols_list, edges, save_interim_results=False): #распределение списка символов по строкам
-        #на вход список символов (получается функцией get_symbols) и список границ (получается функцией get_edges)
-        #на выход список строк (списков символов), отсортированных от верхней к нижней, порядок символов внутри строки - слева направо
+    def symbols_to_rows(symbols_list, edges, save_interim_results=False):
         symbols_list.sort(key=lambda symbol: symbol.coordinates[1], reverse=True)
         rows = []
         for i in range(len(edges)):
@@ -215,8 +199,7 @@ def get_text(filename, model, predictions_list, save_interim_results=False): #п
             print('Границы строк в файле img_rows.png')
         return final_rows
 
-    def get_raw_str(row, space): #собирает текст по строке
-        #row это строка (строки создает функция get_rows), space это размер пробела
+    def get_raw_str(row, space):
         raw_str = ''
         for idx in range(len(row)):
             if idx > 0 and row[idx].coordinates[0] - row[idx - 1].coordinates[2] > space:
@@ -226,21 +209,18 @@ def get_text(filename, model, predictions_list, save_interim_results=False): #п
         raw_str = raw_str.replace(' ᾿ ', ' , ')
         return raw_str
 
-    #что в итоге делаем
     img_prepared = prepare_img(filename, save_interim_results)
-    symbols = get_symbols(img_prepared, model, predictions_list, min_h=15, save_interim_results=save_interim_results) #делаем список символов
-    boxes = get_boxes(img_prepared, min_h=50) #это для распределения по строкам
-    edges = get_edges(boxes, 70) #находим примерные границы строк
-    rows = symbols_to_rows(symbols, edges, save_interim_results=save_interim_results) #распределяем найденные символы по строкам
-    #пишем текст
+    symbols = get_symbols(img_prepared, model, predictions_list, min_h=15, save_interim_results=save_interim_results)
+    boxes = get_boxes(img_prepared, min_h=50)
+    edges = get_edges(boxes, 70)
+    rows = symbols_to_rows(symbols, edges, save_interim_results=save_interim_results)
     text = ''
     for row in rows:
         text += get_raw_str(row, 50) + '\n'
-    #ура!
     return text
 
 
-def main(model_name, predictions_file): #нужны файл с обученной моделью и файл с соответствиями предсказаний и символов
+def main(model_name, predictions_file):
     pdffile = input('Введите имя пдф-файла: ')
     page_number = int(input('Введите номер страницы: ')) - 1
     result_dir = 'results\\'+pdffile+'\\page'+str(page_number)
@@ -256,4 +236,5 @@ def main(model_name, predictions_file): #нужны файл с обученно
         f.write(get_text(fname, model, predictions_list, save_interim_results=save_interim_results))
     print('Распознанный текст в файле '+result_file)
 
+    
 main('machine.h5', 'predictions.txt')
