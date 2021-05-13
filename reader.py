@@ -26,7 +26,7 @@ class Symbol:
 
 def load_page_from_pdf(pdffile, page_number, zoom=4.166):
     doc = fitz.open(pdffile)
-    page = doc.load_page(page_number)
+    page = doc.load_page(page_number - 1)
     mat = fitz.Matrix(zoom, zoom)
     pix = page.getPixmap(matrix=mat)
     output_fname = 'results\\'+pdffile+'\\page'+str(page_number)+'\\'+'page.png'
@@ -222,7 +222,7 @@ def get_text(filename, model, predictions_list, save_interim_results=False):
 
 def main(model_name, predictions_file):
     pdffile = input('Введите имя пдф-файла: ')
-    page_number = int(input('Введите номер страницы: ')) - 1
+    page_number = int(input('Введите номер страницы: '))
     result_dir = 'results\\'+pdffile+'\\page'+str(page_number)
     os.makedirs(result_dir, exist_ok=True)
     print('Результаты будут сохранены в папке '+result_dir)
